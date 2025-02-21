@@ -120,56 +120,24 @@ WHERE `department_id` IN (2, 5, 7) AND `hire_date` > "2000-01-01"
 GROUP BY `department_id`
 ORDER BY `department_id`;
 
-#13
---Work flow changing foreign key on delete behavior to on delete set null --
-show databases;
-show tables from `information_schema`;
-describe `information_schema`.`key_column_usage`;
+#13 correct solution using create table ... as -> not working on existing table
 
-select `column_name`, `constraint_name`, `referenced_table_name`, `referenced_column_name`
-from `information_schema`.`key_column_usage`
-where 
-	`table_schema` = 'soft_uni'
-    and `table_name` = 'employees'
-    and `column_name` = 'manager_id';
+create table `employees_sub_table` as
+	select *
+	from `employees`
+	where `salary` > 30000;
     
-select database();
-select user();
+delete from `employees_sub_table`
+where `manager_id` = 42;
 
-show tables;
-describe `employees`;
-
-alter table `employees`
-drop constraint `fk_employees_employees`;
-
-alter table `employees`
-add constraint fk_employees_employees
-foreign key `employees`(`manager_id`) 
-references `employees`(`employee_id`)
-on delete set null;
--- end of fk change --
-
-#following script should work
-select *
-from `employees`
-where 
-	`salary` > 30000 
-	and `manager_id` = 42;
-    
-delete from `employees`
-where 
-	`salary` > 30000 
-	and `manager_id` = 42;
-
-update `employees`
+update `employees_sub_table`
 set `salary` = `salary` + 5000
-where `salary` > 30000 and `department_id` = 1;
+where `department_id` = 1;
 
 select `department_id`, avg(`salary`)
-from `employees` 
+from `employees_sub_table` 
 group by `department_id`
-order by `department_id`;
-
+order by `department_id` asc;
 
 #14
 SELECT 
